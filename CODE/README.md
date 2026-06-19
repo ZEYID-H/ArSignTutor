@@ -104,3 +104,14 @@ ArSignTutor3/
 ---
 
 *University Project — Artificial Intelligence Department · 2026*
+
+## Project Links
+
+### GitHub Repository
+
+https://github.com/ZEYID-H/ArSignTutor
+
+### Kaggle Case Study
+
+https://www.kaggle.com/code/zeedalhajali/data-leakage-in-sign-language-recognition-from-99
+
