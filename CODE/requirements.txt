@@ -1,37 +1,24 @@
-# Core deep learning
+# ============================================================
+# ArSignTutor — Deployment Dependencies
+# Required to run the Streamlit web application
+# ============================================================
+
+# Deep learning inference
 torch>=2.0
 torchvision>=0.15
 
-# Computer vision & hand tracking
+# Computer vision & real-time hand tracking
 opencv-python>=4.8
-mediapipe>=0.10.9          # 0.10+ Tasks API (app.py ships a compatibility wrapper)
+mediapipe>=0.10.9
 Pillow>=9.5
 
-# Web app + live webcam streaming
+# Web application & live webcam streaming
 streamlit>=1.30
 streamlit-webrtc>=0.47
-av>=10.0                   # PyAV: used directly by app.py for video frames
+av>=10.0
 
-# Data / metrics / plotting
+# Data processing
 numpy>=1.24
-pandas>=2.0
-matplotlib>=3.7
-seaborn>=0.12
-scikit-learn>=1.3
-tqdm>=4.65
 
-# Training monitoring
-tensorboard>=2.13          # visualize loss/accuracy curves during training
-
-# MediaPipe compatibility fix (prevents protobuf version conflicts)
+# MediaPipe compatibility (prevents protobuf version conflicts)
 protobuf>=3.20,<5.0
-
-# Scientific computing (used internally by scikit-learn, sometimes needs explicit install)
-scipy>=1.11
-
-# Optimized inference export (converts model to ONNX for 2-3x faster inference without GPU)
-onnx>=1.14
-onnxruntime>=1.16
-
-# Advanced data augmentation (stronger than torchvision transforms for hand gesture images)
-albumentations>=1.3

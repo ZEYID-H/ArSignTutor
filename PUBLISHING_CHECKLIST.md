@@ -105,15 +105,6 @@ After pushing:
 
 ---
 
-## 8. Portfolio Positioning
+## 8. Portfolio Note
 
-For job applications, lead with these talking points:
-
-| For role | Highlight |
-|----------|-----------|
-| ML Engineer | Two-phase fine-tuning, leakage-aware dataset engineering, ONNX export |
-| AI Engineer | Real-time inference pipeline, MediaPipe + MobileNetV2, WebRTC deployment |
-| LLM Evaluation / AI Trainer | Data leakage discovery, cross-dataset validation design, honest metric reporting |
-| RLHF / AI Trainer | Gamified feedback loop design, human-in-the-loop correction mechanics |
-
-The data leakage case study (99.26% → 48.78% → 94.33%) is your strongest differentiator. Very few portfolio projects demonstrate this kind of evaluation integrity.
+The leakage case study (99.26% → 48.78% → 94.33%) is the strongest differentiator — lead with it for ML Engineer and AI Evaluation roles.

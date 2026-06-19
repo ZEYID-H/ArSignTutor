@@ -26,8 +26,6 @@ This project combines **rigorous ML evaluation practices** — including leakage
 >
 > Designed a **dHash-based clustering pipeline** to eliminate leakage, retrained the model from scratch on a clean split, and achieved an **honest 94.33% test accuracy** that holds up under independent evaluation.
 
-This end-to-end data leakage discovery and resolution is the primary technical contribution of this project. It demonstrates the kind of evaluation integrity that separates production ML systems from academic benchmarks.
-
 | Experiment | Split Strategy | Test Accuracy |
 |------------|---------------|---------------|
 | Baseline (ArASL 54K) | Random 70/15/15 | **99.26%** — inflated by leakage |
@@ -36,35 +34,9 @@ This end-to-end data leakage discovery and resolution is the primary technical c
 
 ---
 
-## Why This Project Matters
-
-**Model generalization is the real test.** A classifier that memorizes training artifacts performs well on paper and fails in production. This project treats generalization as a first-class requirement, not an afterthought.
-
-**Evaluation methodology is engineering.** The choice of how to split a dataset is not administrative — it determines whether your accuracy numbers mean anything. Near-duplicate video frames from the same recording session are a systematic contamination source in video-derived datasets, and most published ArSL benchmarks do not account for this.
-
-**Data leakage detection is a transferable skill.** The dHash clustering approach developed here applies to any dataset collected from video: action recognition, medical imaging time-series, face recognition, sign language — wherever frames from the same session may land in different splits.
-
-**Trustworthy AI requires honest metrics.** Reporting 94.33% instead of 99.26% is a deliberate choice that makes the system more trustworthy. The 5.67% accuracy that leakage "gave for free" would have misled every downstream decision about model readiness.
-
-**Reproducibility is built in.** Split files are committed to the repository so the exact test set can be reproduced without re-running the clustering pipeline.
-
----
-
 ## Problem Statement
 
-Arabic Sign Language is the primary communication method for approximately 50,000 deaf and hard-of-hearing individuals in Arab countries. Despite this, accessible and interactive learning tools remain scarce, creating a significant barrier to social inclusion.
-
-Existing Arabic Sign Language recognition systems frequently suffer from **inflated accuracy metrics** caused by data leakage — where near-duplicate frames from the same recording session appear in both training and test splits. This leads to models that appear highly accurate in laboratory settings but generalize poorly to real users.
-
-ArSignTutor addresses both the educational gap and the evaluation integrity problem.
-
----
-
-## Motivation
-
-1. **Build a practical learning tool** that makes Arabic Sign Language accessible to hearing learners
-2. **Demonstrate rigorous ML evaluation** by identifying and correcting data leakage that inflated accuracy from 99.26% to an honest 94.33%
-3. **Establish a reproducible baseline** for ArSL recognition using leakage-aware dataset splitting
+Arabic Sign Language is the primary communication method for ~50,000 deaf individuals in Arab countries, yet interactive learning tools remain scarce. Beyond the educational gap, published ArSL recognition benchmarks frequently suffer from inflated accuracy caused by near-duplicate video frames leaking between train and test splits — ArSignTutor addresses both.
 
 ---
 
@@ -266,16 +238,6 @@ All metrics are computed on the held-out test split (15% of dataset, cluster-iso
 
 ---
 
-## Resume Highlights
-
-- Built an Arabic Sign Language recognition system covering all 31 Arabic letter classes using MobileNetV2 and PyTorch transfer learning.
-- Achieved **94.33% test accuracy** after discovering and resolving a severe data leakage issue that had artificially inflated results to 99.26%.
-- Identified data contamination via cross-dataset evaluation (48.78% accuracy on an independent dataset), then engineered a dHash-based duplicate detection pipeline to produce a clean, leakage-free train/test split.
-- Developed a real-time Streamlit web application with live MediaPipe hand tracking, temporal prediction smoothing, and a gamified letter-spelling interface.
-- Designed and executed a full ML pipeline: dataset engineering → augmentation → two-phase fine-tuning → evaluation → deployment, with reproducible split files committed to version control.
-
----
-
 ## Repository Structure
 
 ```
@@ -437,14 +399,6 @@ streamlit run CODE/app.py
 | Low | Mobile deployment via TensorFlow Lite or ONNX Runtime Mobile |
 | Low | Community data collection module for new signer contributions |
 | Low | Gulf Arabic Sign Language dialect support |
-
----
-
-## GitHub Topics
-
-`artificial-intelligence` `machine-learning` `deep-learning` `computer-vision` `pytorch` `streamlit` `mediapipe` `sign-language-recognition` `arabic-sign-language` `dataset-engineering` `model-evaluation` `transfer-learning` `mobilenetv2` `data-leakage`
-
-> To add these to the repository: go to the repository page on GitHub → click the gear icon next to **About** → paste the topics above.
 
 ---
 

@@ -1,6 +1,4 @@
-# Dataset Preparation Guide
-
-How to obtain, validate, and split the datasets used in ArSignTutor.
+# Dataset Preparation
 
 ---
 
@@ -68,32 +66,13 @@ This script checks:
 
 ## 3. The Data Leakage Problem
 
-### Why Random Splitting Fails for Video-Derived Datasets
+ArASL 54K was collected as continuous video — one recording session produces hundreds of near-identical frames. Random splitting scatters those frames across train/val/test, so the test set ends up with pixel-level near-duplicates of training samples.
 
-The ArASL 54K dataset (and many similar datasets) is recorded as continuous video. A single recording session of one signer performing one letter produces hundreds of nearly identical frames:
-
-```
-signer_01_seen_frame_001.jpg  ─┐
-signer_01_seen_frame_002.jpg   │ All near-duplicates from
-signer_01_seen_frame_003.jpg   │ the same 2-second video clip
-...                            │
-signer_01_seen_frame_047.jpg  ─┘
-```
-
-When these are split randomly:
-- ~70% of frames go to train
-- ~15% go to val
-- ~15% go to test
-
-The test set contains frames that are **pixel-level near-identical** to training frames. The model effectively memorizes signers rather than sign shapes, producing inflated accuracy.
-
-**Evidence:** A model trained with random splitting on ArASL achieved **99.26% test accuracy** but only **48.78% accuracy** on the completely independent RGB dataset.
+The model memorizes signers instead of signs: **99.26% in-distribution**, but only **48.78%** on the independent RGB dataset.
 
 ---
 
 ## 4. dHash Duplicate Detection
-
-**Difference hashing (dHash)** detects near-duplicate images by comparing pixel intensity gradients:
 
 ### Algorithm
 
@@ -199,7 +178,7 @@ Checks:
 
 ## 6. Pre-computed Split Files
 
-The split files used for the published results are committed to the repository:
+Committed to the repo so you can reproduce the exact evaluation without re-splitting:
 
 ```
 CODE/arsigntutor_final_results/final_project_package/results_clean_training/splits/
@@ -209,13 +188,10 @@ CODE/arsigntutor_final_results/final_project_package/results_clean_training/spli
 └── rgb_cluster_split_all.csv    # Full table: path, cluster_id, split
 ```
 
-To reproduce the exact evaluation without re-splitting:
-
 ```python
 import json
 with open('.../rgb_test_files.json') as f:
     test_files = json.load(f)
-# Use test_files directly as your test set
 ```
 
 ---

@@ -1,17 +1,5 @@
 # Evaluation Methodology
 
-How ArSignTutor measures model performance, why each design decision was made, and a detailed case study of the data leakage that was discovered and corrected.
-
----
-
-## Evaluation Design Principles
-
-Three principles guided evaluation design in this project:
-
-1. **Leakage-aware splits** — test data must never share recording sessions with training data
-2. **Cross-dataset validation** — in-distribution accuracy alone is insufficient; generalization must be tested on a completely independent dataset
-3. **Honest reporting** — inflated metrics are not a success; an accurate estimate of real-world performance is the goal
-
 ---
 
 ## Metrics
@@ -25,7 +13,7 @@ All metrics are computed using `sklearn.metrics` on the held-out test split.
 | **Macro Recall** | mean per-class recall | Penalizes missed signs equally across all classes |
 | **Macro F1** | harmonic mean of precision & recall | Balanced metric; preferred over accuracy when classes are unequal size |
 
-Macro averaging (rather than weighted) is used because all 31 Arabic letters are equally important for the task. A model that achieves 100% on common letters but fails on rare ones is not deployable.
+Macro averaging is used because all 31 letters carry equal importance — a model that fails on rare letters isn't usable.
 
 ---
 
@@ -79,12 +67,7 @@ Experiment 3  →  94.33% accuracy   [clean retrain on RGB with cluster split]
 
 ### Experiment 1: The Suspicious Result
 
-**Setup:**
-- Dataset: ArASL Database 54,000 images
-- Split: Random 70/15/15 using `sklearn.model_selection.train_test_split`
-- Model: MobileNetV2 fine-tuned for 30 epochs
-
-**Results:**
+Random 70/15/15 split on ArASL 54K with MobileNetV2:
 
 | Split | Accuracy |
 |-------|---------|
@@ -92,23 +75,17 @@ Experiment 3  →  94.33% accuracy   [clean retrain on RGB with cluster split]
 | Validation | 99.1% |
 | **Test** | **99.26%** |
 
-While the numbers looked impressive, the tiny gap between train accuracy (99.8%) and test accuracy (99.26%) was the first warning sign. A model that generalizes this well on a 15,000-image test set almost certainly has access to training-like samples in the test set.
+The near-zero train/test gap on a 15,000-image test set was the first warning sign.
 
-### Experiment 2: The Cross-Dataset Reality Check
+### Experiment 2: Cross-Dataset Reality Check
 
-The 99.26%-accurate model was evaluated on the **RGB Arabic Alphabets** dataset — a completely independent data source with:
-- Different signers
-- Different background environments
-- Different camera angles and lighting
-- No overlap with ArASL training images
+The same model tested on the RGB Arabic Alphabets dataset (different signers, backgrounds, lighting):
 
-**Results:**
-
-| Class | Accuracy |
-|-------|---------|
+| | Accuracy |
+|--|---------|
 | Cross-dataset average | **48.78%** |
 
-A 50.5 percentage-point drop between in-distribution and out-of-distribution accuracy is an extremely strong signal of data leakage.
+A 50.5-point gap is a near-certain indicator of data leakage.
 
 ### Root Cause Analysis
 
@@ -121,13 +98,7 @@ train/seen/signer_01_frame_001.jpg  ←─┐ Near-identical
 test/seen/signer_01_frame_003.jpg   ←─┘ (2-frame apart)
 ```
 
-**The model learns:**  
-"signer_01's arm angle at this time of day with these background pixels → seen"
-
-**The model does NOT learn:**  
-"This specific hand shape with these relative finger positions → seen"
-
-This is why it collapses to ~50% accuracy when signers and backgrounds change.
+The model memorized signer appearance instead of sign shapes — hence the collapse when signers change.
 
 ### Verification: dHash Confirms the Contamination
 
@@ -156,14 +127,7 @@ A dHash analysis of the ArASL dataset revealed:
 
 The 4.93% gap between clean accuracy (94.33%) and leaked accuracy (99.26%) represents the "leakage premium" — the artificial boost caused by contaminated test data.
 
-### What 94.33% Actually Means
-
-A 94.33% accuracy on a properly isolated test set means:
-- The model correctly identifies 94 out of 100 sign gestures it has never seen
-- It generalizes across the 31 letters of Arabic Sign Language
-- The remaining ~6% errors are concentrated in visually similar letter pairs (dal/thal, seen/sheen, ta/dha)
-
-This is a meaningful and deployable result. The 99.26% figure was not.
+The ~6% error rate concentrates on visually similar pairs (dal/thal, seen/sheen, ta/dha) — expected failures, not model defects.
 
 ---
 
@@ -188,7 +152,7 @@ This is a meaningful and deployable result. The 99.26% figure was not.
 | ta | dha | Both involve bent wrist; subtle thumb position difference |
 | fa | ghain | Similar closed-fist base; differ in index finger extension |
 
-These confusion patterns align with known perceptual similarities between Arabic letters — they are expected failures, not model defects. A post-processing confidence threshold (currently 70% in the app) mitigates most of these at inference time.
+The app's 70% confidence threshold mitigates most of these at inference time.
 
 ---
 
@@ -201,12 +165,7 @@ The Streamlit application uses **temporal smoothing** during live webcam inferen
 (minimum 15 votes required for a confident prediction)
 ```
 
-This smoothing significantly improves real-world accuracy beyond single-frame metrics, because:
-- Single-frame predictions are noisy (motion blur, partial occlusion)
-- Correct predictions tend to be consistent across frames
-- Incorrect predictions tend to be inconsistent and cancel out in the majority vote
-
-The deployed app therefore performs better than the 94.33% single-frame test accuracy in practice.
+Single-frame predictions are noisy; correct predictions tend to be consistent while errors cancel out in the vote. In practice, real-world accuracy exceeds the 94.33% single-frame test number.
 
 ---
 

@@ -1,18 +1,12 @@
 # Model Training Guide
 
-Complete reference for training ArSignTutor's MobileNetV2 classifier on the RGB Arabic Alphabets Sign Language dataset.
-
 ---
 
-## Architecture Overview
+## Architecture
 
 ### Backbone: MobileNetV2
 
-MobileNetV2 was selected for three reasons:
-
-1. **Real-time inference on CPU** — 3.5M parameters, ~22ms per frame on a modern laptop CPU
-2. **Transfer learning effectiveness** — ImageNet pre-training provides robust low-level visual features that transfer well to hand gesture recognition
-3. **Deployment flexibility** — small enough for browser-based deployment, exportable to ONNX/TFLite
+MobileNetV2 was chosen for real-time CPU inference (~22ms/frame, 3.5M params), strong transfer learning from ImageNet, and easy ONNX/TFLite export.
 
 ### Model Definition
 
@@ -38,28 +32,22 @@ class ArSignModel(nn.Module):
 
 ---
 
-## Two-Phase Fine-Tuning Strategy
-
-Training uses a two-phase approach to prevent the "catastrophic forgetting" that occurs when a pre-trained backbone is immediately fine-tuned at a high learning rate.
+## Two-Phase Fine-Tuning
 
 ### Phase 1: Head Warm-up (5 epochs)
 
 ```python
-# Freeze backbone; only train the new classifier head
 for param in model.model.features.parameters():
     param.requires_grad = False
 
 optimizer = AdamW(model.model.classifier.parameters(), lr=1e-3, weight_decay=1e-4)
 ```
 
-**Purpose:** Initialize the 31-class head with meaningful gradients before the backbone starts adapting. Starting full fine-tuning from a random head causes large gradient updates that can destroy learned ImageNet features.
-
-**Expected outcome:** Validation accuracy climbs from ~3% (random) to ~65–70% by epoch 5.
+Trains only the new 31-class head while the backbone is frozen — avoids destroying ImageNet features before the head is initialized. Expected: ~3% → ~65–70% val accuracy.
 
 ### Phase 2: Full Fine-tuning (up to 25 epochs)
 
 ```python
-# Unfreeze entire model; use lower LR to preserve backbone features
 for param in model.parameters():
     param.requires_grad = True
 
@@ -67,9 +55,7 @@ optimizer = AdamW(model.parameters(), lr=5e-5, weight_decay=1e-4)
 scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=3)
 ```
 
-**Purpose:** Allow backbone to adapt to the ArSL domain (skin tones, hand textures, lighting) while preserving low-level feature detectors.
-
-**Expected outcome:** Validation accuracy climbs from ~67% to ~93% by epoch 24.
+Low LR lets the backbone adapt to ArSL hand textures without forgetting low-level features. Expected: ~67% → ~93% val accuracy.
 
 ---
 
@@ -121,18 +107,9 @@ train_transform = A.Compose([
 
 ---
 
-## Training on Kaggle (Recommended)
+## Training on Kaggle
 
-The primary training script `CODE/arsign_retrain_kaggle.py` is designed for Kaggle's free GPU environment (Tesla T4, 16 GB VRAM).
-
-### Setup
-
-1. Create a new Kaggle notebook
-2. Add datasets:
-   - `monasaleh/arabic-alphabets-sign-language-dataset` (RGB training data)
-   - `ammarsayedtaha/arabic-sign-language-dataset-2022` (ArASL — for cross-dataset evaluation)
-3. Enable GPU: Settings → Accelerator → GPU T4 x1
-4. Upload `CODE/arsign_retrain_kaggle.py` and run
+Upload `CODE/arsign_retrain_kaggle.py` to a Kaggle notebook. Add both datasets, enable GPU T4 x1.
 
 ### Expected Runtime
 
@@ -185,35 +162,17 @@ torch.onnx.export(model, dummy_input, "model.onnx", ...)
 
 ---
 
-## Monitoring Training
-
-TensorBoard logs are written to `runs/` during local training:
+## Monitoring
 
 ```bash
 tensorboard --logdir=runs
-# Open http://localhost:6006
 ```
 
-Key metrics to watch:
-- `Loss/train` and `Loss/val` should converge together (divergence = overfitting)
-- `Accuracy/val` should increase; plateau triggers LR reduction
-- `LearningRate` — look for the LR halving events from ReduceLROnPlateau
-
----
+Watch for `Loss/train` vs `Loss/val` divergence (overfitting) and LR halving events from ReduceLROnPlateau.
 
 ## Reproducibility
 
-All experiments use seed 42:
-
-```python
-import random, numpy as np, torch
-random.seed(42)
-np.random.seed(42)
-torch.manual_seed(42)
-torch.backends.cudnn.deterministic = True
-```
-
-The dataset split files (`CODE/arsigntutor_final_results/.../splits/`) are committed to the repository, so evaluation on the exact same test set is always possible without re-running the split.
+All experiments use seed 42. Split files in `CODE/arsigntutor_final_results/.../splits/` are committed so you can reproduce the exact test set without re-running clustering.
 
 ---
 
