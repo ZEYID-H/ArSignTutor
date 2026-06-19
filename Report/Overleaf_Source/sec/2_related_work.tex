@@ -1,0 +1,38 @@
+\section{Related Work}
+
+Sign language recognition has grown into an active research area in computer
+vision. Early methods relied on handcrafted features and classical classifiers, but
+convolutional neural networks (CNNs) largely replaced them because they learn
+useful features directly from images~\cite{krizhevsky2012, he2016}. Since training a
+large network from scratch needs a lot of data, most recent work uses transfer
+learning, where a model pretrained on a large image dataset is adapted to the
+gesture task. Lightweight backbones such as MobileNet~\cite{sandler2018mobilenetv2}
+and ResNet~\cite{he2016} are common choices, because they run fast enough for
+real-time use while still classifying accurately.
+
+Most of this progress has gone to American Sign Language~\cite{rastgoo2021survey},
+which now has many public datasets and recognition systems. Arabic Sign Language has
+received far less attention~\cite{mohandes2014}, even though the need for Arabic
+learning tools is clear. Several studies have applied CNNs to Arabic alphabet
+recognition~\cite{latif2020arsl, mohandes2014} and report high accuracy. Two
+limitations show up often: the systems are usually static classifiers with no
+teaching component, and the accuracy is measured on a single controlled dataset,
+which does not always reflect how the model behaves on new users or in different
+conditions.
+
+\subsection{Educational Sign Language Systems}
+Some work looks beyond pure recognition at how computer vision can help people
+learn. Tools that give immediate visual feedback tend to help beginners more than
+passive video tutorials, since the learner can fix mistakes as they happen. Most of
+these tools target ASL or European sign languages, so Arabic learners are left with
+few options. Combining accurate recognition with a structured learning task is
+still uncommon for Arabic, and that is the gap this work tries to fill.
+
+\subsection{Transfer Learning for Limited-Data Domains}
+Transfer learning is the usual choice when the target task has limited data. The
+low-level features a network learns on natural images, such as edges and textures,
+carry over well to hand images, so a pretrained backbone gives a strong starting
+point. A common recipe is two-phase fine-tuning: first train only the new classifier
+head while the backbone stays frozen, then unfreeze the whole network and continue
+at a smaller learning rate. Freezing the backbone early keeps the untrained head
+from corrupting the pretrained weights. We use this approach for the ArASL task.

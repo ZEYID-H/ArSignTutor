@@ -1,0 +1,83 @@
+\section{Discussion}
+
+\subsection{Training and Evaluation}
+The leakage-aware model trained smoothly, with training and validation accuracy
+rising together and no sign of overfitting. It is worth being clear about how we
+read this. In our first run, validation accuracy jumped above 99\% within a few
+epochs and tracked training accuracy almost exactly, and we first took the tiny gap
+as proof of strong generalization. The cross-dataset analysis showed that reading
+was wrong. Under a leaky random split, a small gap is actually expected, because
+near-duplicate frames sit on both sides of the split, so the validation set is not
+really new to the model. Only after switching to the leakage-aware split does a
+small gap mean what we want it to mean, and there the model reaches 94.33\% on a
+genuinely unseen test set. The label smoothing we used ($\epsilon = 0.10$) also
+keeps the loss from reaching zero, which is why the loss settles near $0.37$ even at
+high accuracy.
+
+\subsection{Per-Class Performance}
+Accuracy is high and even across the alphabet: every class reaches an F1-score above
+0.85, and none collapses. The weaker classes are \texttt{kaaf}, \texttt{dal}, and
+\texttt{thal}, with \texttt{fa} and \texttt{ra} slightly behind the rest. These are
+the letters whose hand shapes look almost the same and differ only in small details.
+A clear example is \texttt{dal} and \texttt{thal}, which differ only by a dot. Such
+cases are hard for any system that works from a single still image, because the
+distinguishing detail is small and not always visible.
+
+\subsection{Misclassification Analysis}
+Looking at the wrong predictions, most errors happen between letters with very
+similar hand shapes rather than between random pairs, which matches the per-class
+results above. The model is also less confident on these cases, with lower
+probability scores than on correct predictions. That suggests a simple improvement
+for future versions: when confidence is low, the system could ask the user to repeat
+the sign instead of guessing.
+
+One earlier case is worth noting. In the cross-dataset test, the pair
+\texttt{ta}/\texttt{taa} failed completely, which traced back to a difference in how
+the two datasets label or sign that pair, not to a weakness in the model. After
+retraining within a single, consistent dataset, both letters are recognized well. It
+is a good reminder that matching letters by name across datasets is not the same as
+matching the actual gesture.
+
+\subsection{Strengths of the Approach}
+A few choices helped the system work well:
+\begin{itemize}
+  \item Starting from ImageNet pretrained weights gave a strong base, so the model
+        adapted to hand images with limited data.
+  \item The two-phase training kept the pretrained features intact early on and let
+        the network adjust gradually.
+  \item MobileNetV2 is light enough to run in real time on a normal laptop, with no
+        special hardware.
+  \item The spelling tutor turns the model into something a learner can practice
+        with, not just a classifier.
+  \item Most importantly, we evaluated the model honestly. Instead of reporting a
+        single inflated benchmark number, we found the leakage, measured the model on
+        a separate dataset, and retrained so that the reported 94.33\% reflects real
+        performance.
+\end{itemize}
+
+\subsection{Limitations}
+Several limitations remain:
+\begin{itemize}
+  \item \textbf{Static letters only.} The system recognizes single letter signs, not
+        dynamic word-level signs that involve motion. Those would need a temporal
+        model.
+  \item \textbf{Similar letter pairs.} Letters that differ only by a small detail stay
+        the main source of errors and may need extra cues to separate.
+  \item \textbf{Still a domain gap.} Even after retraining, accuracy across a fully
+        different dataset is lower than within one dataset. Real users will vary in
+        ways no single dataset fully covers.
+  \item \textbf{One class dropped.} The color dataset has no \texttt{yaa}, so the
+        retrained model covers 31 of the 32 letters. Adding it back needs more data.
+  \item \textbf{Single-frame decisions.} Each frame is classified on its own, which
+        can make predictions jump while the user moves between signs. Averaging over a
+        few frames helps but does not fully fix it.
+\end{itemize}
+
+\subsection{Broader Impact}
+This work targets a group with few tools available to them: Arabic-speaking deaf and
+hard-of-hearing learners. By giving immediate feedback during letter-spelling
+practice, ArSignTutor makes self-directed learning easier, and it can help early
+learners, parents of deaf children, and teachers in places without specialized
+instructors. Just as important, we hope the leakage analysis is a useful reminder for
+similar projects: a near-perfect score is not always a good model, and it is worth
+checking how the data was split before trusting the number.

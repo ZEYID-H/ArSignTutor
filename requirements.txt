@@ -1,0 +1,24 @@
+# ============================================================
+# ArSignTutor — Deployment Dependencies
+# Required to run the Streamlit web application
+# ============================================================
+
+# Deep learning inference
+torch>=2.0
+torchvision>=0.15
+
+# Computer vision & real-time hand tracking
+opencv-python>=4.8
+mediapipe>=0.10.9
+Pillow>=9.5
+
+# Web application & live webcam streaming
+streamlit>=1.30
+streamlit-webrtc>=0.47
+av>=10.0
+
+# Data processing
+numpy>=1.24
+
+# MediaPipe compatibility (prevents protobuf version conflicts)
+protobuf>=3.20,<5.0

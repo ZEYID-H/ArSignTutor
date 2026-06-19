@@ -1,0 +1,25 @@
+\begin{abstract}
+Sign language is the primary mode of communication for millions of deaf and
+hard-of-hearing individuals worldwide. While American Sign Language (ASL)
+recognition has been studied extensively, Arabic Sign Language (ArSL) remains
+underexplored despite serving an estimated seven million Arabic-speaking deaf
+individuals. In this work, we present ArSignTutor, an interactive real-time
+learning system for the Arabic Sign Language alphabet. Our approach combines a
+fine-tuned MobileNetV2 convolutional neural network with MediaPipe-based hand
+detection for robust, real-time gesture classification, and pairs it with a
+spelling-based tutoring interface that guides users through word formation
+letter-by-letter with immediate visual feedback. Training MobileNetV2 on the
+ArASL dataset (over 54{,}000 images) under a random image-level split yields
+99.26\% test accuracy; we show, however, that this figure is inflated by
+\emph{data leakage}, since the dataset contains many near-duplicate frames of the
+same signer that a random split distributes across both training and test sets. To
+obtain an honest estimate of generalization, we evaluate the model across datasets
+on an independent RGB Arabic alphabet dataset (31 shared classes), where accuracy
+falls to 48.78\%, and then retrain under a leakage-aware (cluster-based) split with
+hand-region preprocessing, reaching a defensible 94.33\% test accuracy. We further
+introduce a selective hand-aware background-blurring technique to improve the
+clarity of the real-time interface. Our main contribution is methodological: a
+reproducible protocol that separates genuine generalization from leakage-driven
+optimism, alongside a practical interactive tool for the Arabic-speaking deaf
+community.
+\end{abstract}

@@ -1,0 +1,2 @@
+best_val_accuracy,clean_rgb_test_accuracy,best_epoch,best_phase
+93.31641285956007,94.33476394849785,25,finetune

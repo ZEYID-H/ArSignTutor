@@ -1,0 +1,97 @@
+\section{Methodology}
+
+\subsection{Datasets and Evaluation}
+We use the Arabic Sign Language dataset (ArASL)~\cite{latif2020arsl}, a public
+dataset of over 54{,}000 grayscale images covering the 32 Arabic alphabet signs,
+collected from more than 40 contributors under varied hand positions.
+
+A practical issue with this dataset is that it contains many near-duplicate frames
+of the same person holding the same letter. If the images are split randomly,
+almost-identical frames end up in both the training and test sets, so the model can
+succeed on test images simply because it saw their near-twins during training. This
+is data leakage, and it makes test accuracy look much higher than the model's real
+ability. Our first split was random, and the resulting accuracy turned out to be
+inflated for exactly this reason.
+
+To fix this, we use a leakage-aware split. The dataset has no signer labels, so we
+approximate one: we compare images with a perceptual hash (dHash), group
+near-duplicate frames into clusters, and send each cluster as a whole to only one of
+the training, validation, or test sets (70/15/15). After clustering, the RGB images
+formed 7{,}575 clusters out of 7{,}856 images; assigning whole clusters gives
+5{,}509 training, 1{,}182 validation, and 1{,}165 test images, with no cluster
+shared across any two splits. This guarantees that no frame and its near-copies can
+appear on both sides of the split.
+
+To check generalization beyond one source, we also use a second, independent
+dataset: the RGB Arabic Alphabets Sign Language Dataset, which is in color and was
+collected separately. After matching the class names between the two datasets (they
+use different spellings, and the RGB set has no \texttt{yaa}, which we drop), we
+obtain 31 shared classes. We evaluate in two ways: a clean held-out test set from
+the same distribution, and a cross-dataset test on the independent set.
+
+\subsection{Preprocessing and Data Augmentation}
+All images are resized to $224 \times 224$ to match the MobileNetV2 input, turned
+into tensors, and normalized with the standard ImageNet statistics. We also focus
+the model on the hand region using MediaPipe-based detection and cropping, which
+removes much of the background variation that hurts performance on new data. The
+same preprocessing is used during training and during live inference, so the model
+sees images the same way in both cases.
+
+During training we apply light augmentation to imitate real webcam conditions: small
+random rotations (up to about $\pm10^\circ$), small affine shifts and scaling, and
+mild brightness and contrast changes. We deliberately do not use horizontal
+flipping, because mirroring a hand can turn one sign into a different one.
+Validation and test images are not augmented.
+
+\subsection{Model Architecture}
+We use MobileNetV2~\cite{sandler2018mobilenetv2} as the backbone. It is a good fit
+here because it is accurate while staying light enough to run in real time on a
+normal laptop. Instead of training from scratch, we start from ImageNet pretrained
+weights~\cite{deng2009imagenet} and adapt them to our task. The final classification
+layer is replaced to output the number of sign classes (32 for the ArASL model, and
+31 for the domain-adapted RGB model after dropping \texttt{yaa}).
+
+Training has two phases. First we train only the new classifier layer while the
+backbone is frozen, so the network can adjust to the new labels without damaging the
+pretrained features. Then we unfreeze the whole network and fine-tune it at a smaller
+learning rate. All training is done in PyTorch~\cite{paszke2019pytorch} on a Kaggle
+NVIDIA Tesla T4 GPU.
+
+\subsection{Domain Adaptation to Color Data}
+After the leakage analysis, we adapt the model to the color (RGB) distribution,
+which is closer to what a real webcam produces. We initialize from the ImageNet and
+ArASL weights and continue training on the RGB dataset using the leakage-aware split
+described above. Because the test set here is genuinely unseen, the resulting
+accuracy is a fair estimate of how the model performs on new data, rather than an
+inflated benchmark number.
+
+\subsection{Hand-Aware Background Blurring}
+To make the live interface easier to read, we blur the background around the
+detected hand. The steps are:
+\begin{enumerate}
+  \item Detect 21 hand landmarks with MediaPipe Hands~\cite{lugaresi2019mediapipe}.
+  \item Build a soft elliptical mask $M$ centered on the hand, with edges smoothed by
+        a Gaussian blur of the mask.
+  \item Blur the whole frame with a Gaussian kernel ($51 \times 51$) to get a blurred
+        copy $I_{\text{blur}}$.
+  \item Blend the sharp and blurred frames using the mask:
+        \begin{equation}
+          I_{\text{out}} = I_{\text{sharp}} \cdot M + I_{\text{blur}} \cdot (1 - M)
+        \end{equation}
+\end{enumerate}
+The result keeps the hand sharp while softening the background, and because the mask
+edges are smoothed, the transition looks natural. The same idea could later be used
+to mask the background before classification, which we leave for future work.
+
+\subsection{Training Strategy}
+We train with the AdamW optimizer and cross-entropy loss with label smoothing
+($\epsilon = 0.10$), which discourages overconfident predictions. The classifier head
+is trained for 5 epochs with the backbone frozen, then the full network is fine-tuned
+for up to 25 epochs at a lower learning rate. We use ReduceLROnPlateau to lower the
+learning rate when validation stops improving, mixed-precision training (AMP) for
+speed, and early stopping (patience 6). The best model on the validation set is kept.
+The full configuration is shown in Table~\ref{tab:training-config}.
+
+\textit{Note on the loss values:} with label smoothing, the cross-entropy loss has a
+non-zero floor (around $0.37$ for this number of classes), so a loss near that value
+at high accuracy is expected and does not mean the model is underfitting.

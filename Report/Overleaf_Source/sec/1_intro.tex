@@ -1,0 +1,88 @@
+\section{Introduction}
+
+\paragraph{Background.}
+Sign language is one of the most important communication methods~\cite{who2021}
+used by deaf and hard-of-hearing individuals around the world. It lets people with
+hearing disabilities communicate using hand gestures, facial expressions, and body
+movements instead of spoken language. However, learning sign language can be hard
+for beginners because there are few accessible educational tools and interactive
+learning systems.
+
+With the progress of artificial intelligence and computer vision, deep learning
+models can now recognize complex visual patterns such as hand
+gestures~\cite{krizhevsky2012}. This makes it possible to build systems that
+recognize sign language automatically from camera input. Yet most existing systems
+focus on American Sign Language (ASL)~\cite{rastgoo2021survey}, while Arabic Sign
+Language (ArSL) gets far less attention~\cite{mohandes2014} and has fewer
+interactive educational applications, even though Arabic is among the most spoken
+languages in the world and its deaf community is large.
+
+Beyond language coverage, research has mostly emphasized accuracy on benchmark
+datasets, without always asking whether that accuracy reflects real performance. A
+high number on a benchmark does not automatically make a useful tool: the score can
+be inflated by how the data is split and evaluated, and lab conditions differ from
+real-world use. Closing the gap between reported benchmarks and practical
+educational tools therefore needs attention not only to interaction and real-time
+performance, but also to whether the evaluation itself is valid.
+
+\subsection{Problem Statement}
+Although recent deep learning systems report strong performance in sign language
+recognition, most work focuses on ASL, while ArSL still suffers from limited
+datasets, fewer educational applications, and a lack of interactive real-time
+systems built for Arabic-speaking users.
+
+Many existing systems also work only as static classifiers that predict a gesture
+without offering an engaging learning experience, with little support for
+interactive practice or real-time feedback.
+
+A further, often ignored problem is the validity of the reported accuracy itself.
+Sign-language datasets are frequently built from many near-duplicate frames of the
+same signer. When such data is split randomly at the image level, almost-identical
+frames land in both the training and test sets. This leaks information and inflates
+test accuracy, so the number no longer reflects how the model performs on new
+users. A high score obtained this way can hide poor real-world performance.
+
+Finally, real deployment brings variation in lighting, hand position, camera
+quality, and background clutter that can lower performance outside the lab, which
+is especially clear in webcam-based systems.
+
+There is therefore a need for an Arabic Sign Language learning platform that
+combines \emph{honestly evaluated} recognition with an interactive tutoring
+experience that works under practical conditions.
+
+\subsection{Project Objectives}
+The main objective is to build an interactive real-time Arabic Sign Language
+learning system using deep learning and computer vision. The specific objectives
+are:
+\begin{itemize}
+  \item Develop a real-time Arabic sign language recognition system using a
+        fine-tuned MobileNetV2 model.
+  \item Recognize the Arabic alphabet sign classes using the ArASL dataset.
+  \item Establish an honest, leakage-free evaluation, and measure generalization on
+        an independent dataset instead of trusting a single benchmark score.
+  \item Build an interactive tutoring interface that guides users through word
+        spelling letter-by-letter with immediate feedback.
+  \item Improve robustness to real-world conditions such as background clutter and
+        lighting changes.
+  \item Deploy the system with a lightweight architecture suitable for real-time
+        webcam use.
+\end{itemize}
+
+\subsection{Project Contributions}
+The main contributions are:
+\begin{itemize}
+  \item An interactive Arabic Sign Language learning system that combines deep
+        learning recognition with educational tutoring.
+  \item A real-time webcam-based recognition pipeline using a fine-tuned
+        MobileNetV2 architecture.
+  \item A word-based spelling tutor that guides users through sequential letter
+        prediction and practice.
+  \item Hand-focused preprocessing and background mitigation to improve robustness.
+  \item \textbf{Identifying and quantifying data leakage} in the standard random
+        split of frame-based ArSL datasets, and showing that a small
+        train/validation gap under such a split is \emph{not} evidence of
+        generalization.
+  \item \textbf{A leakage-aware (cluster-based) split and cross-dataset evaluation
+        protocol} that gives a realistic generalization estimate instead of an
+        inflated benchmark score.
+\end{itemize}

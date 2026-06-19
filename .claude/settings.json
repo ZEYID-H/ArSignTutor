@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\zeedp\\\\Downloads\\\\DEEP LEARNING\\\\DL-ARSIGN-2280205 \\(2\\)\\\\DL-ARSIGN-2280205\" -Recurse -File)",
+      "Bash(Select-Object -Property FullName, Length)",
+      "Bash(Sort-Object FullName)"
+    ]
+  }
+}
